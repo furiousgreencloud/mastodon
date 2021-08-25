@@ -1129,7 +1129,7 @@ const onPortAvailable = onSuccess => {
 
 onPortAvailable(err => {
   if (err) {
-    log.error('Could not start server, the port or socket is in use');
+    log.error('Could not start server, the port or socket is in use: ' + err.toString());
     return;
   }
 

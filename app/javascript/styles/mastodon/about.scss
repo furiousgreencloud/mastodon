@@ -690,7 +690,14 @@ $small-breakpoint: 960px;
 
     svg {
       fill: $primary-text-color;
-      height: 52px;
+      height: 156px; // 52px; // fgc - three times original 
+      width: auto;  // fgc added
+      @media screen and (max-width: $no-gap-breakpoint) { // fgc added - section
+        height: auto; 
+        width: 94%;
+        padding-left: 3%;
+        padding-right: 3%;
+      }
     }
 
     @media screen and (max-width: $no-gap-breakpoint) {
@@ -868,17 +875,20 @@ $small-breakpoint: 960px;
 .brand__tagline {
   display: block;
   position: absolute;
-  bottom: -10px;
-  left: 50px;
-  width: 300px;
+  //bottom: -10px; // fgc remove
+  //left: 50px; // fgc remove
+  //width: 300px; // fgc remove
+  right: 0px;
+  left: auto;
   color: $ui-primary-color;
   text-decoration: none;
   font-size: 14px;
 
   @media screen and (max-width: $no-gap-breakpoint) {
     position: static;
-    width: auto;
-    margin-top: 20px;
+    width: 70%;   // fgc add to create majority size by wrappable text div
+    margin: auto; // fgc add to centre tagline
+    margin-top: 20px; 
     color: $dark-text-color;
   }
 }
