@@ -11,7 +11,7 @@ import { markAsPartial } from 'mastodon/actions/timelines';
 import Column from 'mastodon/features/ui/components/column';
 import Account from './components/account';
 import Logo from 'mastodon/components/logo';
-import imageGreeting from 'mastodon/../images/elephant_ui_greeting.svg';
+import imageGreeting from 'mastodon/../images/hand_ui_greeting.svg';
 import Button from 'mastodon/components/button';
 
 const mapStateToProps = state => ({
