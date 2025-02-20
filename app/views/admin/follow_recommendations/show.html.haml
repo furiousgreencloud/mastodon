@@ -1,20 +1,19 @@
 - content_for :page_title do
   = t('admin.follow_recommendations.title')
 
-- content_for :header_tags do
-  = javascript_pack_tag 'admin', async: true, crossorigin: 'anonymous'
-
 %p= t('admin.follow_recommendations.description_html')
 
 %hr.spacer/
 
 = form_tag admin_follow_recommendations_path, method: 'GET', class: 'simple_form' do
+  - RelationshipFilter::KEYS.each do |key|
+    = hidden_field_tag key, params[key] if params[key].present?
+
   .filters
     .filter-subset.filter-subset--with-select
       %strong= t('admin.follow_recommendations.language')
       .input.select.optional
-        = select_tag :language, options_for_select(I18n.available_locales.map { |key| [human_locale(key), key]}, @language)
-
+        = select_tag :language, options_for_select(Trends.available_locales.map { |key| [standard_locale_name(key), key] }, @language)
     .filter-subset
       %strong= t('admin.follow_recommendations.status')
       %ul

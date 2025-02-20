@@ -10,12 +10,23 @@ class ActivityPub::DeliveryWorker
 
   sidekiq_options queue: 'push', retry: 16, dead: false
 
+  # Unfortunately, we cannot control Sidekiq's jitter, so add our own
+  sidekiq_retry_in do |count|
+    # This is Sidekiq's default delay
+    delay  = (count**4) + 15
+    # Our custom jitter, that will be added to Sidekiq's built-in one.
+    # Sidekiq's built-in jitter is `rand(10) * (count + 1)`
+    jitter = rand(0.5 * (count**4))
+    delay + jitter
+  end
+
   HEADERS = { 'Content-Type' => 'application/activity+json' }.freeze
 
   def perform(json, source_account_id, inbox_url, options = {})
-    return unless DeliveryFailureTracker.available?(inbox_url)
-
     @options        = options.with_indifferent_access
+
+    return unless @options[:bypass_availability] || DeliveryFailureTracker.available?(inbox_url)
+
     @json           = json
     @source_account = Account.find(source_account_id)
     @inbox_url      = inbox_url
@@ -37,18 +48,14 @@ class ActivityPub::DeliveryWorker
 
   def build_request(http_client)
     Request.new(:post, @inbox_url, body: @json, http_client: http_client).tap do |request|
-      request.on_behalf_of(@source_account, :uri, sign_with: @options[:sign_with])
+      request.on_behalf_of(@source_account, sign_with: @options[:sign_with])
       request.add_headers(HEADERS)
       request.add_headers({ 'Collection-Synchronization' => synchronization_header }) if ENV['DISABLE_FOLLOWERS_SYNCHRONIZATION'] != 'true' && @options[:synchronize_followers]
     end
   end
 
   def synchronization_header
-    "collectionId=\"#{account_followers_url(@source_account)}\", digest=\"#{@source_account.remote_followers_hash(inbox_url_prefix)}\", url=\"#{account_followers_synchronization_url(@source_account)}\""
-  end
-
-  def inbox_url_prefix
-    @inbox_url[/http(s?):\/\/[^\/]+\//]
+    "collectionId=\"#{account_followers_url(@source_account)}\", digest=\"#{@source_account.remote_followers_hash(@inbox_url)}\", url=\"#{account_followers_synchronization_url(@source_account)}\""
   end
 
   def perform_request

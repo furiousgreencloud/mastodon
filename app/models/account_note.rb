@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: account_notes
@@ -17,4 +18,5 @@ class AccountNote < ApplicationRecord
   belongs_to :target_account, class_name: 'Account'
 
   validates :account_id, uniqueness: { scope: :target_account_id }
+  validates :comment, length: { maximum: 2_000 }
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe ActivityPub::TagManager do
@@ -40,6 +42,14 @@ RSpec.describe ActivityPub::TagManager do
       mentioned = Fabricate(:account)
       status.mentions.create(account: mentioned)
       expect(subject.to(status)).to eq [subject.uri_for(mentioned)]
+    end
+
+    it "returns URIs of mentioned group's followers for direct statuses to groups" do
+      status    = Fabricate(:status, visibility: :direct)
+      mentioned = Fabricate(:account, domain: 'remote.org', uri: 'https://remote.org/group', followers_url: 'https://remote.org/group/followers', actor_type: 'Group')
+      status.mentions.create(account: mentioned)
+      expect(subject.to(status)).to include(subject.uri_for(mentioned))
+      expect(subject.to(status)).to include(subject.followers_uri_for(mentioned))
     end
 
     it "returns URIs of mentions for direct silenced author's status only if they are followers or requesting to be" do
@@ -102,6 +112,14 @@ RSpec.describe ActivityPub::TagManager do
       expect(subject.cc(status)).to include(subject.uri_for(foo))
       expect(subject.cc(status)).to_not include(subject.uri_for(alice))
     end
+
+    it 'returns poster of reblogged post, if reblog' do
+      bob    = Fabricate(:account, username: 'bob', domain: 'example.com', inbox_url: 'http://example.com/bob')
+      alice  = Fabricate(:account, username: 'alice')
+      status = Fabricate(:status, visibility: :public, account: bob)
+      reblog = Fabricate(:status, visibility: :public, account: alice, reblog: status)
+      expect(subject.cc(reblog)).to include(subject.uri_for(bob))
+    end
   end
 
   describe '#local_uri?' do
@@ -129,7 +147,7 @@ RSpec.describe ActivityPub::TagManager do
     end
 
     it 'returns the remote account by matching URI without fragment part' do
-      account = Fabricate(:account, uri: 'https://example.com/123')
+      account = Fabricate(:account, uri: 'https://example.com/123', domain: 'example.com')
       expect(subject.uri_to_resource('https://example.com/123#456', Account)).to eq account
     end
 

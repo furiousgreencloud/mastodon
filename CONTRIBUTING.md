@@ -1,5 +1,4 @@
-Contributing
-============
+# Contributing
 
 Thank you for considering contributing to Mastodon 🐘
 
@@ -14,7 +13,7 @@ If your contributions are accepted into Mastodon, you can request to be paid thr
 
 ## Bug reports
 
-Bug reports and feature suggestions must use descriptive and concise titles and be submitted to [GitHub Issues](https://github.com/tootsuite/mastodon/issues). Please use the search function to make sure that you are not submitting duplicates, and that a similar report or request has not already been resolved or rejected.
+Bug reports and feature suggestions must use descriptive and concise titles and be submitted to [GitHub Issues](https://github.com/mastodon/mastodon/issues). Please use the search function to make sure that you are not submitting duplicates, and that a similar report or request has not already been resolved or rejected.
 
 ## Translations
 
@@ -28,9 +27,9 @@ You can submit translations via [Crowdin](https://crowdin.com/project/mastodon).
 
 Example:
 
-|Not ideal|Better|
-|---|----|
-|Fixed NoMethodError in RemovalWorker|Fix nil error when removing statuses caused by race condition|
+| Not ideal                            | Better                                                        |
+| ------------------------------------ | ------------------------------------------------------------- |
+| Fixed NoMethodError in RemovalWorker | Fix nil error when removing statuses caused by race condition |
 
 It is not always possible to phrase every change in such a manner, but it is desired.
 
@@ -44,4 +43,4 @@ It is not always possible to phrase every change in such a manner, but it is des
 
 ## Documentation
 
-The [Mastodon documentation](https://docs.joinmastodon.org) is a statically generated site. You can [submit merge requests to tootsuite/documentation](https://github.com/tootsuite/documentation).
+The [Mastodon documentation](https://docs.joinmastodon.org) is a statically generated site. You can [submit merge requests to mastodon/documentation](https://github.com/mastodon/documentation).

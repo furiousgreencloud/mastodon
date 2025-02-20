@@ -4,10 +4,11 @@ module AccountOwnedConcern
   extend ActiveSupport::Concern
 
   included do
-    before_action :authenticate_user!, if: -> { whitelist_mode? && request.format != :json }
+    before_action :authenticate_user!, if: -> { limited_federation_mode? && request.format != :json }
     before_action :set_account, if: :account_required?
     before_action :check_account_approval, if: :account_required?
     before_action :check_account_suspension, if: :account_required?
+    before_action :check_account_confirmation, if: :account_required?
   end
 
   private
@@ -26,6 +27,10 @@ module AccountOwnedConcern
 
   def check_account_approval
     not_found if @account.local? && @account.user_pending?
+  end
+
+  def check_account_confirmation
+    not_found if @account.local? && !@account.user_confirmed?
   end
 
   def check_account_suspension

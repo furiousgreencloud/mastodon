@@ -8,9 +8,8 @@ module Settings
       before_action :require_otp_enabled
       before_action :require_webauthn_enabled, only: [:index, :destroy]
 
-      def new; end
-
       def index; end
+      def new; end
 
       def options
         current_user.update(webauthn_id: WebAuthn.generate_user_id) unless current_user.webauthn_id
@@ -21,12 +20,13 @@ module Settings
             display_name: current_user.account.username,
             id: current_user.webauthn_id,
           },
-          exclude: current_user.webauthn_credentials.pluck(:external_id)
+          exclude: current_user.webauthn_credentials.pluck(:external_id),
+          authenticator_selection: { user_verification: 'discouraged' }
         )
 
         session[:webauthn_challenge] = options_for_create.challenge
 
-        render json: options_for_create, status: :ok
+        render json: options_for_create, status: 200
       end
 
       def create
@@ -51,7 +51,7 @@ module Settings
             end
           else
             flash[:error] = I18n.t('webauthn_credentials.create.error')
-            status = :internal_server_error
+            status = :unprocessable_entity
           end
         else
           flash[:error] = t('webauthn_credentials.create.error')

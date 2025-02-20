@@ -3,23 +3,47 @@
 // Dependent colors
 $black: #000000;
 
+<<<<<<< HEAD
+/* LIVE THEME COLOURS Using
 $classic-base-color: theme-color-shift(#282c37);
 $classic-primary-color: theme-color-shift(#9baec8);
 $classic-secondary-color: theme-color-shift(#d9e1e8);
 $classic-highlight-color: theme-color-shift(#2b90d9);
+$ui-highlight-color: theme-color-shift(#2b5fd9);
+*/
+/* DEFAULT COLOURS
+$classic-base-color: #282c37;
+$classic-primary-color: #9baec8;
+$classic-secondary-color: #d9e1e8;
+$classic-highlight-color: #6364ff;
+*/
+
+/* LIVE THEM COLOURS - Start */
+$classic-base-color: #282c37;
+$classic-primary-color: #9baec8;
+$classic-secondary-color: #d9e1e8;
+$classic-highlight-color: #2b90d9;
+/* LIVE THEM COLOURS - End */
 
 $ui-base-color: $classic-base-color !default;
 $ui-primary-color: $classic-primary-color !default;
 $ui-secondary-color: $classic-secondary-color !default;
-
-// Differences
-$ui-highlight-color: theme-color-shift(#2b5fd9);
+$ui-highlight-color: #2b5fd9;
+/* v4.2.5
+$ui-highlight-color: $classic-highlight-color !default;
+*/
 
 $darker-text-color: lighten($ui-primary-color, 20%) !default;
 $dark-text-color: lighten($ui-primary-color, 12%) !default;
 $secondary-text-color: lighten($ui-secondary-color, 6%) !default;
+/* LIVE THEM COLOURS - Start */
 $highlight-text-color: $classic-highlight-color !default;
 $action-button-color: theme-color-shift(#8d9ac2);
+/* LIVE THEM COLOURS - End */
+/* v4.2.5 
+$highlight-text-color: lighten($ui-highlight-color, 10%) !default;
+$action-button-color: lighten($ui-base-color, 50%);
+*/
 
 $inverted-text-color: $black !default;
 $lighter-text-color: darken($ui-base-color, 6%) !default;

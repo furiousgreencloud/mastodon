@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe PostStatusService, type: :service do
-  subject { PostStatusService.new }
+  subject { described_class.new }
 
   it 'creates a new status' do
     account = Fabricate(:account)
-    text = "test status update"
+    text = 'test status update'
 
     status = subject.call(account, text: text)
 
@@ -16,7 +18,7 @@ RSpec.describe PostStatusService, type: :service do
   it 'creates a new response status' do
     in_reply_to_status = Fabricate(:status)
     account = Fabricate(:account)
-    text = "test status update"
+    text = 'test status update'
 
     status = subject.call(account, text: text, thread: in_reply_to_status)
 
@@ -25,36 +27,40 @@ RSpec.describe PostStatusService, type: :service do
     expect(status.thread).to eq in_reply_to_status
   end
 
-  it 'schedules a status' do
-    account = Fabricate(:account)
-    future  = Time.now.utc + 2.hours
+  context 'when scheduling a status' do
+    let!(:account)         { Fabricate(:account) }
+    let!(:future)          { Time.now.utc + 2.hours }
+    let!(:previous_status) { Fabricate(:status, account: account) }
 
-    status = subject.call(account, text: 'Hi future!', scheduled_at: future)
+    it 'schedules a status' do
+      status = subject.call(account, text: 'Hi future!', scheduled_at: future)
+      expect(status).to be_a ScheduledStatus
+      expect(status.scheduled_at).to eq future
+      expect(status.params['text']).to eq 'Hi future!'
+    end
 
-    expect(status).to be_a ScheduledStatus
-    expect(status.scheduled_at).to eq future
-    expect(status.params['text']).to eq 'Hi future!'
-  end
+    it 'does not immediately create a status' do
+      media = Fabricate(:media_attachment, account: account)
+      status = subject.call(account, text: 'Hi future!', media_ids: [media.id], scheduled_at: future)
 
-  it 'does not immediately create a status when scheduling a status' do
-    account = Fabricate(:account)
-    media = Fabricate(:media_attachment)
-    future  = Time.now.utc + 2.hours
+      expect(status).to be_a ScheduledStatus
+      expect(status.scheduled_at).to eq future
+      expect(status.params['text']).to eq 'Hi future!'
+      expect(status.params['media_ids']).to eq [media.id]
+      expect(media.reload.status).to be_nil
+      expect(Status.where(text: 'Hi future!')).to_not exist
+    end
 
-    status = subject.call(account, text: 'Hi future!', media_ids: [media.id], scheduled_at: future)
-
-    expect(status).to be_a ScheduledStatus
-    expect(status.scheduled_at).to eq future
-    expect(status.params['text']).to eq 'Hi future!'
-    expect(media.reload.status).to be_nil
-    expect(Status.where(text: 'Hi future!').exists?).to be_falsey
+    it 'does not change statuses count' do
+      expect { subject.call(account, text: 'Hi future!', scheduled_at: future, thread: previous_status) }.to_not(change { [account.statuses_count, previous_status.replies_count] })
+    end
   end
 
   it 'creates response to the original status of boost' do
     boosted_status = Fabricate(:status)
     in_reply_to_status = Fabricate(:status, reblog: boosted_status)
     account = Fabricate(:account)
-    text = "test status update"
+    text = 'test status update'
 
     status = subject.call(account, text: text, thread: in_reply_to_status)
 
@@ -71,7 +77,7 @@ RSpec.describe PostStatusService, type: :service do
   end
 
   it 'creates a status with spoiler text' do
-    spoiler_text = "spoiler text"
+    spoiler_text = 'spoiler text'
 
     status = create_status_with_options(spoiler_text: spoiler_text)
 
@@ -97,14 +103,14 @@ RSpec.describe PostStatusService, type: :service do
     status = create_status_with_options(visibility: :private)
 
     expect(status).to be_persisted
-    expect(status.visibility).to eq "private"
+    expect(status.visibility).to eq 'private'
   end
 
   it 'creates a status with limited visibility for silenced users' do
     status = subject.call(Fabricate(:account, silenced: true), text: 'test', visibility: :public)
 
     expect(status).to be_persisted
-    expect(status.visibility).to eq "unlisted"
+    expect(status.visibility).to eq 'unlisted'
   end
 
   it 'creates a status for the given application' do
@@ -126,24 +132,43 @@ RSpec.describe PostStatusService, type: :service do
   end
 
   it 'processes mentions' do
-    mention_service = double(:process_mentions_service)
+    mention_service = instance_double(ProcessMentionsService)
     allow(mention_service).to receive(:call)
     allow(ProcessMentionsService).to receive(:new).and_return(mention_service)
     account = Fabricate(:account)
 
-    status = subject.call(account, text: "test status update")
+    status = subject.call(account, text: 'test status update')
 
     expect(ProcessMentionsService).to have_received(:new)
-    expect(mention_service).to have_received(:call).with(status)
+    expect(mention_service).to have_received(:call).with(status, save_records: false)
+  end
+
+  it 'safeguards mentions' do
+    account = Fabricate(:account)
+    mentioned_account = Fabricate(:account, username: 'alice')
+    unexpected_mentioned_account = Fabricate(:account, username: 'bob')
+
+    expect do
+      subject.call(account, text: '@alice hm, @bob is really annoying lately', allowed_mentions: [mentioned_account.id])
+    end.to raise_error(an_instance_of(PostStatusService::UnexpectedMentionsError).and(having_attributes(accounts: [unexpected_mentioned_account])))
+  end
+
+  it 'processes duplicate mentions correctly' do
+    account = Fabricate(:account)
+    mentioned_account = Fabricate(:account, username: 'alice')
+
+    expect do
+      subject.call(account, text: '@alice @alice @alice hey @alice')
+    end.to_not raise_error
   end
 
   it 'processes hashtags' do
-    hashtags_service = double(:process_hashtags_service)
+    hashtags_service = instance_double(ProcessHashtagsService)
     allow(hashtags_service).to receive(:call)
     allow(ProcessHashtagsService).to receive(:new).and_return(hashtags_service)
     account = Fabricate(:account)
 
-    status = subject.call(account, text: "test status update")
+    status = subject.call(account, text: 'test status update')
 
     expect(ProcessHashtagsService).to have_received(:new)
     expect(hashtags_service).to have_received(:call).with(status)
@@ -155,7 +180,7 @@ RSpec.describe PostStatusService, type: :service do
 
     account = Fabricate(:account)
 
-    status = subject.call(account, text: "test status update")
+    status = subject.call(account, text: 'test status update')
 
     expect(DistributionWorker).to have_received(:perform_async).with(status.id)
     expect(ActivityPub::DistributionWorker).to have_received(:perform_async).with(status.id)
@@ -165,7 +190,7 @@ RSpec.describe PostStatusService, type: :service do
     allow(LinkCrawlWorker).to receive(:perform_async)
     account = Fabricate(:account)
 
-    status = subject.call(account, text: "test status update")
+    status = subject.call(account, text: 'test status update')
 
     expect(LinkCrawlWorker).to have_received(:perform_async).with(status.id)
   end
@@ -176,8 +201,8 @@ RSpec.describe PostStatusService, type: :service do
 
     status = subject.call(
       account,
-      text: "test status update",
-      media_ids: [media.id],
+      text: 'test status update',
+      media_ids: [media.id]
     )
 
     expect(media.reload.status).to eq status
@@ -189,11 +214,11 @@ RSpec.describe PostStatusService, type: :service do
 
     status = subject.call(
       account,
-      text: "test status update",
-      media_ids: [media.id],
+      text: 'test status update',
+      media_ids: [media.id]
     )
 
-    expect(media.reload.status).to eq nil
+    expect(media.reload.status).to be_nil
   end
 
   it 'does not allow attaching more than 4 files' do
@@ -202,18 +227,18 @@ RSpec.describe PostStatusService, type: :service do
     expect do
       subject.call(
         account,
-        text: "test status update",
+        text: 'test status update',
         media_ids: [
           Fabricate(:media_attachment, account: account),
           Fabricate(:media_attachment, account: account),
           Fabricate(:media_attachment, account: account),
           Fabricate(:media_attachment, account: account),
           Fabricate(:media_attachment, account: account),
-        ].map(&:id),
+        ].map(&:id)
       )
     end.to raise_error(
       Mastodon::ValidationError,
-      I18n.t('media_attachments.validations.too_many'),
+      I18n.t('media_attachments.validations.too_many')
     )
   end
 
@@ -227,15 +252,15 @@ RSpec.describe PostStatusService, type: :service do
     expect do
       subject.call(
         account,
-        text: "test status update",
+        text: 'test status update',
         media_ids: [
           video,
           image,
-        ].map(&:id),
+        ].map(&:id)
       )
     end.to raise_error(
       Mastodon::ValidationError,
-      I18n.t('media_attachments.validations.images_and_video'),
+      I18n.t('media_attachments.validations.images_and_video')
     )
   end
 

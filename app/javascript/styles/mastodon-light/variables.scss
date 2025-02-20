@@ -4,10 +4,26 @@
 $black: #000000;
 $white: #ffffff;
 
+/* LIVE Theme Shifts - Start */
 $classic-base-color: theme-color-shift(#282c37);
 $classic-primary-color: theme-color-shift(#9baec8);
 $classic-secondary-color: theme-color-shift(#d9e1e8);
 $classic-highlight-color: theme-color-shift(#2b90d9);
+/* LIVE Theme Shifts - End */
+/* Upstream - Start */
+/*
+$classic-base-color: #282c37;
+$classic-primary-color: #9baec8;
+$classic-secondary-color: #d9e1e8;
+$classic-highlight-color: #858afa;
+*/
+/* Upstream - End */
+
+$blurple-600: #563acc; // Iris
+$blurple-500: #6364ff; // Brand purple
+$blurple-300: #858afa; // Faded Blue
+$grey-600: #4e4c5a; // Trout
+$grey-100: #dadaf3; // Topaz
 
 // Differences
 $success-green: lighten(#3c754d, 8%);
@@ -19,21 +35,39 @@ $ui-base-color: $classic-secondary-color !default;
 $ui-base-lighter-color: theme-color-shift(#b0c0cf);
 $ui-primary-color: theme-color-shift(#9bcbed);
 $ui-secondary-color: $classic-base-color !default;
+/* LIVE Theme Shifts - Start */
 $ui-highlight-color: theme-color-shift(#2b90d9);
+$dark-text-color: theme-color-shift(#444b5d);
+$action-button-color: theme-color-shift(#606984);
+/* LIVE Theme Shifts - End */
+
+/* Upstream Defaults - Start */
+/*
+$ui-highlight-color: $classic-highlight-color !default;
+$dark-text-color: #444b5d;
+$action-button-color: #606984;
+*/
+/* Upstream Defaults - End */
+
+$ui-button-secondary-color: $grey-600 !default;
+$ui-button-secondary-border-color: $grey-600 !default;
+$ui-button-secondary-focus-color: $white !default;
+
+$ui-button-tertiary-color: $blurple-500 !default;
+$ui-button-tertiary-border-color: $blurple-500 !default;
 
 $primary-text-color: $black !default;
 $darker-text-color: $classic-base-color !default;
-$dark-text-color: theme-color-shift(#444b5d);
-$action-button-color: theme-color-shift(#606984);
+$highlight-text-color: darken($ui-highlight-color, 8%) !default;
 
 $inverted-text-color: $black !default;
 $lighter-text-color: $classic-base-color !default;
 $light-text-color: theme-color-shift(#444b5d);
 
-//Newly added colors
+// Newly added colors
 $account-background-color: $white !default;
 
-//Invert darkened and lightened colors
+// Invert darkened and lightened colors
 @function darken($color, $amount) {
   @return hsl(hue($color), saturation($color), lightness($color) + $amount);
 }

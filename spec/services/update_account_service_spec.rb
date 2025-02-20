@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe UpdateAccountService, type: :service do
-  subject { UpdateAccountService.new }
+  subject { described_class.new }
 
   describe 'switching form locked to unlocked accounts' do
     let(:account) { Fabricate(:account, locked: true) }
-    let(:alice)   { Fabricate(:user, email: 'alice@example.com', account: Fabricate(:account, username: 'alice')).account }
-    let(:bob)     { Fabricate(:user, email: 'bob@example.com', account: Fabricate(:account, username: 'bob')).account }
-    let(:eve)     { Fabricate(:user, email: 'eve@example.com', account: Fabricate(:account, username: 'eve')).account }
+    let(:alice)   { Fabricate(:account) }
+    let(:bob)     { Fabricate(:account) }
+    let(:eve)     { Fabricate(:account) }
 
     before do
       bob.touch(:silenced_at)

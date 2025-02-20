@@ -3,30 +3,57 @@ pt-BR:
   activerecord:
     attributes:
       poll:
-        expires_at: Vencimento
-        options: Escolhas
+        expires_at: Prazo
+        options: Opções
       user:
-        agreement: Termos do Serviço
-        email: Endereço de e-mail
-        locale: Local
+        agreement: Termos de serviço
+        email: E-mail
+        locale: Idioma
         password: Senha
       user/account:
-        username: Nome de usuário
+        username: Usuário
       user/invite_request:
-        text: Motivos
+        text: Razão
     errors:
       models:
         account:
           attributes:
             username:
               invalid: apenas letras, números e underlines ( "_" )
-              reserved: está reservado
+              reserved: já existe
+        admin/webhook:
+          attributes:
+            url:
+              invalid: não é uma URL válida
+        doorkeeper/application:
+          attributes:
+            website:
+              invalid: não é uma URL válida
+        import:
+          attributes:
+            data:
+              malformed: está incorreto
         status:
           attributes:
             reblog:
-              taken: do status já existe
+              taken: do toot já existe
         user:
           attributes:
             email:
-              blocked: utiliza um provedor de e-mail não permitido
+              blocked: usa provedor de e-mail não permitido
               unreachable: parece não existir
+            role_id:
+              elevated: não pode ser maior que seu cargo atual
+        user_role:
+          attributes:
+            permissions_as_keys:
+              dangerous: incluir permissões que não são seguras para o cargo base
+              elevated: não pode incluir permissões que o seu cargo atual não possui
+              own_role: não pode ser alterado com seu cargo atual
+            position:
+              elevated: não pode ser maior do que seu cargo atual
+              own_role: não pode ser alterado com seu cargo atual
+        webhook:
+          attributes:
+            events:
+              invalid_permissions: não pode incluir eventos que você não tem permissão para
